@@ -1,0 +1,35 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                // --- GStreamer ---
+                "C:/msys64/mingw64/include/gstreamer-1.0",
+                "C:/msys64/mingw64/include/glib-2.0",
+                "C:/msys64/mingw64/lib/glib-2.0/include",
+                // --- Poppler + bağımlılıklar ---
+                "C:/msys64/mingw64/include/poppler",
+                "C:/msys64/mingw64/include/poppler/cpp",
+                "C:/msys64/mingw64/include/freetype2",
+                "C:/msys64/mingw64/include/harfbuzz",
+                "C:/msys64/mingw64/include/openjpeg-2.5",
+                "C:/msys64/mingw64/include/libpng16",
+                "C:/msys64/mingw64/include/webp",
+                "C:/msys64/mingw64/include/nss3",
+                "C:/msys64/mingw64/include/nspr"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "10.0.22621.0",
+            "compilerPath": "C:/msys64/mingw64/bin/g++.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-gcc-x64"
+        }
+    ],
+    "version": 4
+}
