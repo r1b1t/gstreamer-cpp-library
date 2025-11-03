@@ -7,7 +7,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-
+ 
 // PDF dosyasını PNG resimlerine dönüştürme
 // inputPath: Giriş PDF dosya yolu
 // outputDir: Çıkış PNG dosyalarının kaydedileceği dizin

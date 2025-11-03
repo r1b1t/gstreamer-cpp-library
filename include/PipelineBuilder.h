@@ -15,4 +15,8 @@ public:
     static std::string windowscam(int width, int height);
     // Video oynatma pipeline oluşturur
     static std::string videoplayer(const std::string &videoPattern);
+    // Windows Ekran Yakalama pipeline oluşturur
+    static std::string windowsscreen();
+    // Çoklu Unicast, Multicast Yayını pipeline oluşturur
+    static std::string multiunicastlive();
 };
