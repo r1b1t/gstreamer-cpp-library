@@ -1,0 +1,3 @@
+C:/Users/nberk/Documents/gstreamer-library/build/CMakeFiles/gstcpp.dir
+C:/Users/nberk/Documents/gstreamer-library/build/CMakeFiles/edit_cache.dir
+C:/Users/nberk/Documents/gstreamer-library/build/CMakeFiles/rebuild_cache.dir
