@@ -1,0 +1,6 @@
+examples/pngtovideo2_output/output_frames_copy/*
+!examples/pngtovideo2_output/output_frames_copy/.gitkeep
+
+examples/pngtovideo2_output/output_frames/*
+!examples/pngtovideo2_output/output_frames/.gitkeep
+
