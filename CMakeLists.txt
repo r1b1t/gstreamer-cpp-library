@@ -1,59 +1,110 @@
 cmake_minimum_required(VERSION 3.16)
 
-# 📌 Proje bilgisi
-project(gstreamer_cpp_library LANGUAGES CXX)
+project(gstreamer_cpp_library
+    VERSION 1.0.0
+    LANGUAGES CXX
+)
 
-# 📌 C++ standardı
+# C++ standardı
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
-# (İsteğe bağlı) G++ derleyici yolunu elle belirtebilirsin
-# set(CMAKE_CXX_COMPILER "C:/msys64/mingw64/bin/g++.exe")
+# Derleyici uyarılarını aç
+if(MSVC)
+    add_compile_options(/W4)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-# 📁 Kaynak ve header dosyalarını bul
+# -------------------------------------------------------
+# Kütüphane kaynakları
+# -------------------------------------------------------
 file(GLOB_RECURSE GSTCPP_HEADERS CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/include/*.h")
 file(GLOB_RECURSE GSTCPP_SOURCES CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.cpp")
 
-# 📦 Kütüphaneyi oluştur
 add_library(gstcpp STATIC ${GSTCPP_SOURCES} ${GSTCPP_HEADERS})
-# Eğer dinamik (DLL) kütüphane istersen, üstteki satırı yorum satırına alıp bunu aç:
+# Eğer shared istersen üstteki satırı yorum satırına alıp şu satırı aç:
 # add_library(gstcpp SHARED ${GSTCPP_SOURCES} ${GSTCPP_HEADERS})
 
-# 📌 Header dosyalarının bulunduğu include klasörünü herkese açık yap
-target_include_directories(gstcpp PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+target_include_directories(gstcpp
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
 )
 
-# 🧩 GStreamer, GTK, Poppler ve diğer bağımlılıkları ekle
-find_package(PkgConfig REQUIRED)
+target_compile_features(gstcpp PUBLIC cxx_std_17)
 
-pkg_check_modules(DEPS REQUIRED
-    gtk+-3.0
-    gstreamer-1.0
-    gstreamer-rtsp-server-1.0
-    poppler-cpp
+# -------------------------------------------------------
+# GStreamer, GTK, Poppler bağımlılıkları (opsiyonel)
+# -------------------------------------------------------
+find_package(PkgConfig QUIET)
+if(PkgConfig_FOUND)
+    pkg_check_modules(DEPS QUIET
+        gtk+-3.0
+        gstreamer-1.0
+        gstreamer-rtsp-server-1.0
+        poppler-cpp
+    )
+
+    if(DEPS_FOUND)
+        target_include_directories(gstcpp PUBLIC ${DEPS_INCLUDE_DIRS})
+        target_link_directories(gstcpp PUBLIC ${DEPS_LIBRARY_DIRS})
+        target_link_libraries(gstcpp PUBLIC ${DEPS_LIBRARIES})
+    endif()
+endif()
+
+# -------------------------------------------------------
+# Kurulum (install) ve find_package desteği
+# -------------------------------------------------------
+include(GNUInstallDirs)
+
+install(TARGETS gstcpp
+    EXPORT gstcppTargets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-# 📎 Include ve link ayarlarını hedefe bağla
-target_include_directories(gstcpp PUBLIC ${DEPS_INCLUDE_DIRS})
-target_link_directories(gstcpp PUBLIC ${DEPS_LIBRARY_DIRS})
-target_link_libraries(gstcpp PUBLIC ${DEPS_LIBRARIES})
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-# ⚙️ Derleme uyarılarını ve hata ayarlarını aç
-target_compile_options(gstcpp PRIVATE -Wall -Wextra -g)
+# CMake config dosyası
+include(CMakePackageConfigHelpers)
 
-# 🪟 Windows / MSYS2 için tanımlar
-add_definitions(-DUNICODE -D_UNICODE)
-
-# 📤 Build çıktısını belirli bir klasöre yönlendir
-set_target_properties(gstcpp PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/output"
-    LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/output"
-    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/output"
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/gstcppConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
 )
 
-# 🧾 Bilgi mesajları
-message(STATUS "GStreamer include dirs: ${DEPS_INCLUDE_DIRS}")
-message(STATUS "GStreamer libs: ${DEPS_LIBRARIES}")
-message(STATUS "Output directory: ${PROJECT_SOURCE_DIR}/output")
+install(EXPORT gstcppTargets
+    FILE gstcppTargets.cmake
+    NAMESPACE gstcpp::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/gstcpp
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/gstcppConfigVersion.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/gstcpp
+)
+
+# -------------------------------------------------------
+# Paketleme desteği (başkaları FetchContent ile kullansın diye)
+# -------------------------------------------------------
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/gstcppConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/gstcppConfig.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/gstcpp
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/gstcppConfig.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/gstcpp
+)
+
+# Örnek (isteğe bağlı)
+option(BUILD_EXAMPLES "Build example apps" OFF)
+if(BUILD_EXAMPLES)
+    add_executable(example examples/example_app.cpp)
+    target_link_libraries(example PRIVATE gstcpp)
+endif()

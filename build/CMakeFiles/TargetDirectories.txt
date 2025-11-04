@@ -1,3 +1,7 @@
 C:/Users/nberk/Documents/gstreamer-library/build/CMakeFiles/gstcpp.dir
 C:/Users/nberk/Documents/gstreamer-library/build/CMakeFiles/edit_cache.dir
 C:/Users/nberk/Documents/gstreamer-library/build/CMakeFiles/rebuild_cache.dir
+C:/Users/nberk/Documents/gstreamer-library/build/CMakeFiles/list_install_components.dir
+C:/Users/nberk/Documents/gstreamer-library/build/CMakeFiles/install.dir
+C:/Users/nberk/Documents/gstreamer-library/build/CMakeFiles/install/local.dir
+C:/Users/nberk/Documents/gstreamer-library/build/CMakeFiles/install/strip.dir
