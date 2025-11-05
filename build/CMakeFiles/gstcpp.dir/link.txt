@@ -1,2 +1,0 @@
-C:\msys64\mingw64\bin\ar.exe qc libgstcpp.a CMakeFiles/gstcpp.dir/src/GstreamerManager.cpp.obj CMakeFiles/gstcpp.dir/src/PDFRenderer1.cpp.obj CMakeFiles/gstcpp.dir/src/PDFRenderer2.cpp.obj CMakeFiles/gstcpp.dir/src/PipelineBuilder.cpp.obj
-C:\msys64\mingw64\bin\ranlib.exe libgstcpp.a
