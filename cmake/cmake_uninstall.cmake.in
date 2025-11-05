@@ -1,0 +1,29 @@
+if(NOT EXISTS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
+    message(FATAL_ERROR "install_manifest.txt not found. Did you run 'cmake --install .' first?")
+endif()
+
+file(READ "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt" files)
+string(REPLACE "\n" ";" files "${files}")
+
+# Dosyaları kaldır
+foreach(file ${files})
+    if(EXISTS "${file}")
+        message(STATUS "Removing file: ${file}")
+        file(REMOVE "${file}")
+    endif()
+endforeach()
+
+# pkgconfig dizinindeki .pc dosyasını kaldır
+set(pkgconfig_file "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/GStreamerCppLibrary.pc")
+if(EXISTS "${pkgconfig_file}")
+    message(STATUS "Removing pkgconfig file: ${pkgconfig_file}")
+    file(REMOVE "${pkgconfig_file}")
+endif()
+
+# Eğer boş kaldıysa pkgconfig dizinini de temizle
+set(pkg_dir "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig")
+if(EXISTS "${pkg_dir}")
+    execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory "${pkg_dir}")
+endif()
+
+message(STATUS "✅ GStreamerCppLibrary başarıyla kaldırıldı.")

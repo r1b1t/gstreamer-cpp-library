@@ -16,7 +16,7 @@ examples/pngtovideo2_output/output_frames_copy/*
 
 # CMake tarafından oluşturulan derleme klasörlerini yoksay
 build/
-cmake*/
+cmake-build-*/
 
 # IDE dosyaları
 .vscode/
