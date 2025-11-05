@@ -67,36 +67,91 @@ bool GStreamerManager::play()
     return true;
 }
 
-//
-// 🔹 Hata veya EOS (End Of Stream) bekleme
-//
 void GStreamerManager::wait()
 {
     if (!pipeline)
         return;
 
     bus = gst_element_get_bus(pipeline);
-    GstMessage *msg = gst_bus_timed_pop_filtered(
-        bus, GST_CLOCK_TIME_NONE,
-        (GstMessageType)(GST_MESSAGE_ERROR | GST_MESSAGE_EOS));
 
-    if (msg)
+    // 🔹 Ana döngü
+    gboolean terminate = FALSE;
+    gint64 duration = GST_CLOCK_TIME_NONE;
+
+    while (!terminate)
     {
-        if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_ERROR)
-        {
-            GError *err;
-            gchar *debug_info;
-            gst_message_parse_error(msg, &err, &debug_info);
-            std::cerr << "Hata: " << err->message << std::endl;
-            g_error_free(err);
-            g_free(debug_info);
-        }
-        else if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_EOS)
-        {
-            std::cout << "Pipeline tamamlandı.\n";
-        }
+        // 🔹 Her 100 ms'de bir mesaj bekle (örnek: hata, durum değişikliği vs.)
+        GstMessage *msg = gst_bus_timed_pop_filtered(
+            bus, 100 * GST_MSECOND,
+            static_cast<GstMessageType>(
+                GST_MESSAGE_ERROR |
+                GST_MESSAGE_EOS |
+                GST_MESSAGE_STATE_CHANGED |
+                GST_MESSAGE_DURATION));
 
-        gst_message_unref(msg);
+        if (msg != nullptr)
+        {
+            switch (GST_MESSAGE_TYPE(msg))
+            {
+            case GST_MESSAGE_ERROR:
+            {
+                GError *err;
+                gchar *debug_info;
+                gst_message_parse_error(msg, &err, &debug_info);
+                std::cerr << "Hata: " << err->message << std::endl;
+                g_free(debug_info);
+                g_error_free(err);
+                terminate = TRUE;
+                break;
+            }
+            case GST_MESSAGE_EOS:
+                std::cout << "\n✅ Video tamamlandı (End Of Stream).\n";
+                terminate = TRUE;
+                break;
+
+            case GST_MESSAGE_DURATION:
+                // 🔹 Süre değiştiyse yeniden sorgula
+                duration = GST_CLOCK_TIME_NONE;
+                break;
+
+            case GST_MESSAGE_STATE_CHANGED:
+                if (GST_MESSAGE_SRC(msg) == GST_OBJECT(pipeline))
+                {
+                    GstState old_state, new_state, pending_state;
+                    gst_message_parse_state_changed(msg, &old_state, &new_state, &pending_state);
+                    std::cout << "Pipeline state: "
+                              << gst_element_state_get_name(old_state)
+                              << " → " << gst_element_state_get_name(new_state)
+                              << std::endl;
+                }
+                break;
+
+            default:
+                break;
+            }
+
+            gst_message_unref(msg);
+        }
+        else
+        {
+            // 🔹 Pipeline halen PLAYING mi?
+            GstState state;
+            gst_element_get_state(pipeline, &state, nullptr, 0);
+
+            if (state != GST_STATE_PLAYING)
+                continue;
+
+            gint64 current = -1;
+            if (!gst_element_query_position(pipeline, GST_FORMAT_TIME, &current))
+                continue;
+
+            if (!GST_CLOCK_TIME_IS_VALID(duration))
+                gst_element_query_duration(pipeline, GST_FORMAT_TIME, &duration);
+
+            g_print("⏱  Konum: %" GST_TIME_FORMAT " / %" GST_TIME_FORMAT "\r",
+                    GST_TIME_ARGS(current), GST_TIME_ARGS(duration));
+            fflush(stdout);
+        }
     }
 }
 
@@ -105,18 +160,18 @@ void GStreamerManager::wait()
 //
 void GStreamerManager::cleanup()
 {
+    // Pipeline varsa önce durdur
     if (pipeline)
     {
         gst_element_set_state(pipeline, GST_STATE_NULL);
         gst_element_get_state(pipeline, nullptr, nullptr, GST_CLOCK_TIME_NONE);
-        gst_object_unref(pipeline);
-        pipeline = nullptr;
+        gst_clear_object(&pipeline); // ✅ güvenli unref + nullptr ataması
     }
 
+    // Bus varsa güvenli unref
     if (bus)
     {
-        gst_object_unref(bus);
-        bus = nullptr;
+        gst_clear_object(&bus); // ✅ güvenli unref + nullptr
     }
 }
 

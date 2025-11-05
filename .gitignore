@@ -1,0 +1,17 @@
+# pngtovideo_output/output_frames klasöründeki tüm dosyaları yoksay
+examples/pngtovideo_output/output_frames/*
+# ama .gitkeep dosyasını hariç tut
+!examples/pngtovideo_output/output_frames/.gitkeep
+
+
+# pngtovideo2_output/output_frames klasöründeki tüm dosyaları yoksay
+examples/pngtovideo2_output/output_frames/*
+# ama .gitkeep dosyasını hariç tut
+!examples/pngtovideo2_output/output_frames/.gitkeep
+
+
+# pngtovideo2_output/output_frames_copy klasöründeki tüm dosyaları yoksay
+examples/pngtovideo2_output/output_frames_copy/*
+# ama .gitkeep dosyasını hariç tut
+!examples/pngtovideo2_output/output_frames_copy/.gitkeep
+
