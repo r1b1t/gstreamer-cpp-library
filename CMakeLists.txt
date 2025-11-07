@@ -37,17 +37,15 @@ pkg_check_modules(POPPLER REQUIRED poppler-cpp)
 
 # Kütüphane kaynak dosyaları
 set(LIBRARY_SOURCES
-    src/GstreamerManager.cpp
-    src/PDFRenderer1.cpp
-    src/PDFRenderer2.cpp
+    src/GStreamerManager.cpp
+    src/PDFRendererToPNG.cpp
     src/PipelineBuilder.cpp
 )
 
 # Kütüphane header dosyaları
 set(LIBRARY_HEADERS
-    include/GstreamerManager.h
-    include/PDFRenderer1.h
-    include/PDFRenderer2.h
+    include/GStreamerManager.h
+    include/PDFRendererToPNG.h
     include/PipelineBuilder.h
 )
 
