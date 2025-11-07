@@ -1,5 +1,5 @@
 // PDFRenderer1.cpp
-#include "PDFRenderer1.h"
+#include "PDFRendererToPNG.h"
 #include <poppler-document.h>
 #include <poppler-page.h>
 #include <poppler-page-renderer.h>
@@ -7,7 +7,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
- 
+
 // PDF dosyasını PNG resimlerine dönüştürme
 // inputPath: Giriş PDF dosya yolu
 // outputDir: Çıkış PNG dosyalarının kaydedileceği dizin

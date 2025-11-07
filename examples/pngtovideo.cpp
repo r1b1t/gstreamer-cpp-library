@@ -1,4 +1,4 @@
-#include "PDFRenderer1.h"
+#include "PDFRendererToPNG.h"
 #include "GStreamerManager.h"
 #include "PipelineBuilder.h"
 #include <iostream>
@@ -22,6 +22,4 @@ int main(int argc, char *argv[])
         PipelineBuilder::pngtovideo(
             "pngtovideo_output/output_frames/frame_%d.png",
             "pngtovideo_output/lowfps20second.mp4"));
-
-    std::cout << "Video oluşturma tamamlandı.\n";
 }

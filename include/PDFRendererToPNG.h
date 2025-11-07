@@ -1,4 +1,4 @@
-// PDFRenderer1.h
+// PDFRendererToPNG.h
 #pragma once
 #include <string>
 

@@ -2,21 +2,21 @@
 #include <iostream>
 
 //
-// 🔹 Constructor: GStreamer’ı başlatır
+// Constructor: GStreamer’ı başlatır
 //
 GStreamerManager::GStreamerManager()
     : pipeline(nullptr), bus(nullptr)
 {
     gst_init(nullptr, nullptr);
 
-    /* GStreamer hata ayıklama seviyesini bilgi seviyesine ayarla
+    /* GStreamer hata ayıklama seviyesini bilgi seviyesine ayarla (isteğe bağlı)
     gst_debug_set_default_threshold(GST_LEVEL_INFO);*/
 
     std::cout << "GStreamer başlatıldı.\n";
 }
 
 //
-// 🔹 Destructor: Temizlik yapar
+// Destructor: Temizlik yapar
 //
 GStreamerManager::~GStreamerManager()
 {
@@ -25,7 +25,7 @@ GStreamerManager::~GStreamerManager()
 }
 
 //
-// 🔹 Pipeline oluşturma
+// Pipeline oluşturma
 //
 bool GStreamerManager::createPipeline(const std::string &pipelineDesc)
 {
@@ -46,7 +46,7 @@ bool GStreamerManager::createPipeline(const std::string &pipelineDesc)
 }
 
 //
-// 🔹 Pipeline’ı oynat
+// Pipeline’ı oynat
 //
 bool GStreamerManager::play()
 {
@@ -74,13 +74,13 @@ void GStreamerManager::wait()
 
     bus = gst_element_get_bus(pipeline);
 
-    // 🔹 Ana döngü
+    // Ana döngü
     gboolean terminate = FALSE;
     gint64 duration = GST_CLOCK_TIME_NONE;
 
     while (!terminate)
     {
-        // 🔹 Her 100 ms'de bir mesaj bekle (örnek: hata, durum değişikliği vs.)
+        // Her 100 ms'de bir mesaj bekle (örnek: hata, durum değişikliği vs.)
         GstMessage *msg = gst_bus_timed_pop_filtered(
             bus, 100 * GST_MSECOND,
             static_cast<GstMessageType>(
@@ -105,12 +105,12 @@ void GStreamerManager::wait()
                 break;
             }
             case GST_MESSAGE_EOS:
-                std::cout << "\n✅ Video tamamlandı (End Of Stream).\n";
+                std::cout << "\nVideo tamamlandı (End Of Stream).\n";
                 terminate = TRUE;
                 break;
 
             case GST_MESSAGE_DURATION:
-                // 🔹 Süre değiştiyse yeniden sorgula
+                // Süre değiştiyse yeniden sorgula
                 duration = GST_CLOCK_TIME_NONE;
                 break;
 
@@ -119,7 +119,7 @@ void GStreamerManager::wait()
                 {
                     GstState old_state, new_state, pending_state;
                     gst_message_parse_state_changed(msg, &old_state, &new_state, &pending_state);
-                    std::cout << "Pipeline state: "
+                    std::cout << "Pipeline Durumu: "
                               << gst_element_state_get_name(old_state)
                               << " → " << gst_element_state_get_name(new_state)
                               << std::endl;
@@ -148,7 +148,7 @@ void GStreamerManager::wait()
             if (!GST_CLOCK_TIME_IS_VALID(duration))
                 gst_element_query_duration(pipeline, GST_FORMAT_TIME, &duration);
 
-            g_print("⏱  Konum: %" GST_TIME_FORMAT " / %" GST_TIME_FORMAT "\r",
+            g_print("GStreamer Sayaç: %" GST_TIME_FORMAT " / %" GST_TIME_FORMAT "\r",
                     GST_TIME_ARGS(current), GST_TIME_ARGS(duration));
             fflush(stdout);
         }
@@ -165,13 +165,13 @@ void GStreamerManager::cleanup()
     {
         gst_element_set_state(pipeline, GST_STATE_NULL);
         gst_element_get_state(pipeline, nullptr, nullptr, GST_CLOCK_TIME_NONE);
-        gst_clear_object(&pipeline); // ✅ güvenli unref + nullptr ataması
+        gst_clear_object(&pipeline); // güvenli unref + nullptr ataması
     }
 
     // Bus varsa güvenli unref
     if (bus)
     {
-        gst_clear_object(&bus); // ✅ güvenli unref + nullptr
+        gst_clear_object(&bus); // güvenli unref + nullptr
     }
 }
 
