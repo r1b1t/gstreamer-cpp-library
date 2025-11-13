@@ -2,7 +2,7 @@
 #pragma once
 #include <string>
 
-class PipelineBuilder
+class GstPipelineBuilder
 {
 public:
     // PNG to video pipeline oluşturur
@@ -19,4 +19,6 @@ public:
     static std::string windowsscreen();
     // Çoklu Unicast, Multicast Yayını pipeline oluşturur
     static std::string multiunicastlive();
+    // Kullanıcının kendi pipeline'ını doğrudan kullanabilmesi için
+    static std::string custompipeline(const std::string &pipeline);
 };

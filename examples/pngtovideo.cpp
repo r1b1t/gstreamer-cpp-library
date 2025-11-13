@@ -1,6 +1,6 @@
-#include "PDFRendererToPNG.h"
-#include "GStreamerManager.h"
-#include "PipelineBuilder.h"
+#include "GStreamer/Manager.hpp"
+#include "GStreamer/PipelineBuilder.hpp"
+#include "Poppler/PDFRendererToPNG.hpp"
 #include <iostream>
 
 // PDF dosyasını PNG resimlerine dönüştürür ve ardından bu PNG dosyalarından bir video oluşturur.
@@ -12,14 +12,14 @@
 int main(int argc, char *argv[])
 {
     // PDF dosyasını PNG resimlerine dönüştürme
-    PDFRenderer1 pdfRenderer;
+    PDFRendererToPNG pdfRenderer;
     if (!pdfRenderer.renderPDFtoPNG("pngtovideo_output/pdf_input/example4pages.pdf", "pngtovideo_output/output_frames/"))
         return 1;
 
     // GStreamer ile PNG dosyalarından video oluşturma
-    GStreamerManager manager;
-    manager.runPipeline(
-        PipelineBuilder::pngtovideo(
+    GstManager manager;
+    manager.addPipeline(
+        GstPipelineBuilder::pngtovideo(
             "pngtovideo_output/output_frames/frame_%d.png",
             "pngtovideo_output/lowfps20second.mp4"));
 }

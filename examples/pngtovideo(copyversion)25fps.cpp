@@ -1,6 +1,6 @@
-#include "PDFRendererToPNG.h"
-#include "GStreamerManager.h"
-#include "PipelineBuilder.h"
+#include "GStreamer/Manager.hpp"
+#include "GStreamer/PipelineBuilder.hpp"
+#include "Poppler/PDFRendererToPNG.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     std::string outputFramesCopy = "pngtovideo2_output/output_frames_copy/";
     std::string outputVideo = "pngtovideo2_output/25fps20second.mp4";
 
-    PDFRenderer1 pdfRenderer;
+    PDFRendererToPNG pdfRenderer;
 
     // PDF'yi PNG'lere dönüştür
     if (!pdfRenderer.renderPDFtoPNG(inputPDF, outputFrames))
@@ -69,9 +69,9 @@ int main(int argc, char *argv[])
         return 1;
 
     // GStreamer pipeline’ı çalıştır
-    GStreamerManager manager;
-    manager.runPipeline(
-        PipelineBuilder::pngtovideo2(
+    GstManager manager;
+    manager.addPipeline(
+        GstPipelineBuilder::pngtovideo2(
             outputFramesCopy + "frame_%04d.png",
             outputVideo));
 

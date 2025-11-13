@@ -1,108 +1,106 @@
-# Bu dosyanın çalışması için en düşük CMake sürümünü belirler.
-# CMake 3.15 veya üzeri kullanılmazsa hata verir.
 cmake_minimum_required(VERSION 3.15)
-# Projenin adını GStreamerCppLibrary olarak belirler, sürümünü 1.0.0 yapar ve yalnızca C++ diliyle derleneceğini söyler.
-project(GStreamerCppLibrary VERSION 1.0.0 LANGUAGES CXX)
 
-# Proje C++17 standardıyla derlenecek.
+project(
+    GStreamerCppLibrary
+    VERSION 1.2.0
+    DESCRIPTION "C++ library that wraps GStreamer, RTSP Server, and Poppler for PDF rendering and streaming."
+    LANGUAGES CXX
+)
+
 set(CMAKE_CXX_STANDARD 17)
-# C++17 standardının zorunlu olduğunu belirtir.
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# FetchContent ile kullanılıyorsa install etme
-# Yani CMAKE_SOURCE_DIR: En tepedeki (root) CMakeLists.txt’in bulunduğu dizin.
-#PROJECT_SOURCE_DIR: Şu an içinde bulunduğun geçerli projenin (project(...) ile tanımlanan) kaynak dizini.
-
-#Durumlar:
-#Bu kütüphaneyi kendi başına derliyorsan (yani cmake -S . -B build dediğin dizinde bu proje en tepedeyse), her ikisi de aynı dizini gösterir ⇒ IS_TOP_LEVEL = TRUE.
-#Bu kütüphaneyi başka bir projenin alt projesi olarak eklediysen (ör. add_subdirectory(vendor/GStreamerCppLibrary) ya da FetchContent_MakeAvailable), en tepedeki dizin üst projedir; kütüphanenin PROJECT_SOURCE_DIR’i alt klasördür ⇒ IS_TOP_LEVEL = FALSE.
-#Kısacası: Bağımsız derleme = TRUE, başka projeye gömülü derleme = FALSE.CMAKE_SOURCE_DIR: En tepedeki (root) CMakeLists.txt’in bulunduğu dizin.
-#PROJECT_SOURCE_DIR: Şu an içinde bulunduğun geçerli projenin (project(...) ile tanımlanan) kaynak dizini.
-
-#Durumlar:
-#Bu kütüphaneyi kendi başına derliyorsan (yani cmake -S . -B build dediğin dizinde bu proje en tepedeyse), her ikisi de aynı dizini gösterir ⇒ IS_TOP_LEVEL = TRUE.
-#Bu kütüphaneyi başka bir projenin alt projesi olarak eklediysen (ör. add_subdirectory(vendor/GStreamerCppLibrary) ya da FetchContent_MakeAvailable), en tepedeki dizin üst projedir; kütüphanenin PROJECT_SOURCE_DIR’i alt klasördür ⇒ IS_TOP_LEVEL = FALSE.
-#Kısacası: Bağımsız derleme = TRUE, başka projeye gömülü derleme = FALSE.
+# Bağımsız mı alt proje mi?
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     set(IS_TOP_LEVEL TRUE)
 else()
     set(IS_TOP_LEVEL FALSE)
 endif()
 
-# GStreamer ve diğer bağımlılıkları bul
+# Bağımlılıklar
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
 pkg_check_modules(GSTREAMER_RTSP REQUIRED gstreamer-rtsp-server-1.0)
 pkg_check_modules(POPPLER REQUIRED poppler-cpp)
+pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
 
-# Kütüphane kaynak dosyaları
+# Kaynak dosyalar
 set(LIBRARY_SOURCES
-    src/GStreamerManager.cpp
-    src/PDFRendererToPNG.cpp
-    src/PipelineBuilder.cpp
+    src/GStreamer/Manager.cpp
+    src/GStreamer/MediaController.cpp
+    src/GStreamer/PipelineBuilder.cpp
+    src/GStreamerRTSPServer/Manager.cpp
+    src/GStreamerRTSPServer/PipelineBuilder.cpp
+    src/Poppler/PDFRendererToPNG.cpp
 )
 
-# Kütüphane header dosyaları
+# Header dosyalar
 set(LIBRARY_HEADERS
-    include/GStreamerManager.h
-    include/PDFRendererToPNG.h
-    include/PipelineBuilder.h
+    include/GStreamer/Manager.hpp
+    include/GStreamer/MediaController.hpp
+    include/GStreamer/PipelineBuilder.hpp
+    include/GStreamerRTSPServer/Manager.hpp
+    include/GStreamerRTSPServer/PipelineBuilder.hpp
+    include/Poppler/PDFRendererToPNG.hpp
 )
 
-# Sadece shared library oluştur
+# Shared library
 add_library(${PROJECT_NAME} SHARED ${LIBRARY_SOURCES})
 
-# Include dizinleri
+# Include path’ler
 target_include_directories(${PROJECT_NAME}
-    # Hem derleme zamanında hem de kütüphane kullanan projelerde geçerli olacak include dizinleri
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
-    #Sadece bu hedef derlenirken kullanılacak include dizinleri
     PRIVATE
         ${GSTREAMER_INCLUDE_DIRS}
         ${GSTREAMER_RTSP_INCLUDE_DIRS}
         ${POPPLER_INCLUDE_DIRS}
+        ${GTKMM_INCLUDE_DIRS}
 )
 
-# Bağımlılıkları link et
+# Linkleme
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
         ${GSTREAMER_LIBRARIES}
         ${GSTREAMER_RTSP_LIBRARIES}
         ${POPPLER_LIBRARIES}
+        ${GTKMM_LIBRARIES}
 )
 
-# Derleme seçenekleri
+# Derleme opsiyonları
 target_compile_options(${PROJECT_NAME} PRIVATE
     ${GSTREAMER_CFLAGS_OTHER}
     ${GSTREAMER_RTSP_CFLAGS_OTHER}
-    ${GTK3_CFLAGS_OTHER}
     ${POPPLER_CFLAGS_OTHER}
+    ${GTKMM_CFLAGS_OTHER}
 )
 
-# Library özellikleri
 set_target_properties(${PROJECT_NAME} PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION 1
-    PUBLIC_HEADER "${LIBRARY_HEADERS}"
 )
 
-# Alias target (FetchContent için)
 add_library(GStreamerCppLibrary::GStreamerCppLibrary ALIAS ${PROJECT_NAME})
 
-# Install kuralları (sadece top-level build ise)
+# ==================================
+# INSTALL bölümü (Windows uyumlu)
+# ==================================
 if(IS_TOP_LEVEL)
     include(GNUInstallDirs)
+    include(CMakePackageConfigHelpers)
 
     install(TARGETS ${PROJECT_NAME}
         EXPORT ${PROJECT_NAME}Targets
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}   # ⬅️ BUNU EKLEDİK
     )
 
-    include(CMakePackageConfigHelpers)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+        FILES_MATCHING PATTERN "*.hpp"
+    )
 
     configure_package_config_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
@@ -128,11 +126,7 @@ if(IS_TOP_LEVEL)
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
     )
 
-    export(EXPORT ${PROJECT_NAME}Targets
-        FILE ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake
-        NAMESPACE ${PROJECT_NAME}::
-    )
-
+    # pkg-config dosyası
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}.pc.in
         ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc

@@ -2,20 +2,24 @@
 #include <string>
 #include <gst/gst.h>
 
-class GStreamerManager
+class GstManager
 {
 public:
     // Yapıcı ve yıkıcı metodlar
-    GStreamerManager();
-    ~GStreamerManager();
+    GstManager();
+    ~GstManager();
 
-    // Ana çalışma fonksiyonu
-    bool runPipeline(const std::string &pipelineDesc);
+    // Pipeline Ekleme
+    bool addPipeline(const std::string &pipelineDesc);
+
+    bool run();
+    void pause();
+    void resume();
+    void restart();
 
 private:
     // Yardımcı fonksiyonlar
-    bool createPipeline(const std::string &pipelineDesc);
-    bool play();
+
     void wait();
     void cleanup();
 

@@ -1,29 +1,46 @@
+# ==========================================================
+# GStreamerCppLibrary uninstall script
+# ==========================================================
+
+# Kurulum manifesti kontrolü
 if(NOT EXISTS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
-    message(FATAL_ERROR "install_manifest.txt not found. Did you run 'cmake --install .' first?")
+    message(FATAL_ERROR "install_manifest.txt bulunamadı! Önce 'cmake --install .' komutunu çalıştırmalısın.")
 endif()
 
+# install_manifest.txt içeriğini oku
 file(READ "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt" files)
 string(REPLACE "\n" ";" files "${files}")
 
-# Dosyaları kaldır
+# Listedeki her dosyayı kaldır
 foreach(file ${files})
-    if(EXISTS "${file}")
-        message(STATUS "Removing file: ${file}")
+    if(EXISTS "${file}" OR IS_SYMLINK "${file}")
+        message(STATUS "Siliniyor: ${file}")
         file(REMOVE "${file}")
+    else()
+        message(STATUS "Atlanıyor (dosya bulunamadı): ${file}")
     endif()
 endforeach()
 
-# pkgconfig dizinindeki .pc dosyasını kaldır
-set(pkgconfig_file "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/GStreamerCppLibrary.pc")
-if(EXISTS "${pkgconfig_file}")
-    message(STATUS "Removing pkgconfig file: ${pkgconfig_file}")
-    file(REMOVE "${pkgconfig_file}")
-endif()
+# Ek olarak oluşturulabilecek özel dosyalar
+set(extra_files
+    "@CMAKE_INSTALL_PREFIX@/lib/pkgconfig/GStreamerCppLibrary.pc"
+    "@CMAKE_INSTALL_PREFIX@/lib/cmake/GStreamerCppLibrary/GStreamerCppLibraryConfig.cmake"
+    "@CMAKE_INSTALL_PREFIX@/lib/cmake/GStreamerCppLibrary/GStreamerCppLibraryConfigVersion.cmake"
+    "@CMAKE_INSTALL_PREFIX@/lib/cmake/GStreamerCppLibrary/GStreamerCppLibraryTargets.cmake"
+)
 
-# Eğer boş kaldıysa pkgconfig dizinini de temizle
-set(pkg_dir "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig")
-if(EXISTS "${pkg_dir}")
-    execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory "${pkg_dir}")
+foreach(extra ${extra_files})
+    if(EXISTS "${extra}")
+        message(STATUS "Ek dosya kaldırılıyor: ${extra}")
+        file(REMOVE "${extra}")
+    endif()
+endforeach()
+
+# CMake config klasörünü tamamen temizle (sadece kendi klasörün)
+set(cmake_config_dir "@CMAKE_INSTALL_PREFIX@/lib/cmake/GStreamerCppLibrary")
+if(EXISTS "${cmake_config_dir}")
+    message(STATUS "CMake config dizini temizleniyor: ${cmake_config_dir}")
+    file(REMOVE_RECURSE "${cmake_config_dir}")
 endif()
 
 message(STATUS "✅ GStreamerCppLibrary başarıyla kaldırıldı.")

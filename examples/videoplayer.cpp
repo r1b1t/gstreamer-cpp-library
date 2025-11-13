@@ -1,10 +1,10 @@
-#include "GStreamerManager.h"
-#include "PipelineBuilder.h"
+#include "GStreamer/Manager.hpp"
+#include "GStreamer/PipelineBuilder.hpp"
 #include <iostream>
 
 int main(int argc, char *argv[])
 {
     // GStreamer ile video oynatma
-    GStreamerManager manager;
-    manager.runPipeline(PipelineBuilder::videoplayer("videoplayer_output/examplevideo.mp4"));
+    GstManager manager;
+    manager.addPipeline(GstPipelineBuilder::videoplayer("videoplayer_output/examplevideo.mp4"));
 }

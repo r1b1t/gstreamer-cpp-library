@@ -4,8 +4,8 @@ libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
 includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
 Name: @PROJECT_NAME@
-Description: GStreamer C++ Wrapper Library
+Description: @PROJECT_DESCRIPTION@
 Version: @PROJECT_VERSION@
-Requires: gstreamer-1.0 gstreamer-rtsp-server-1.0 poppler-cpp
+Requires: gtkmm-3.0 gstreamer-1.0 gstreamer-rtsp-server-1.0 poppler-cpp
 Libs: -L${libdir} -lGStreamerCppLibrary
 Cflags: -I${includedir}/GStreamerCppLibrary

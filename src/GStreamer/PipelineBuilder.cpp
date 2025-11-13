@@ -1,11 +1,11 @@
 // PipelineBuilder.cpp
-#include "PipelineBuilder.h"
+#include "GStreamer/PipelineBuilder.hpp"
 #include <sstream>
 
 // PNG dosyalarından video oluşturmak için GStreamer pipeline tanımı
 // Örneği: examples/pngtovideo.cpp
 // PNG dosyalarından saniyede 5 kare hızında video oluşturur. Bizim örneğimizde video toplam 20 saniye olur.
-std::string PipelineBuilder::pngtovideo(const std::string &inputPattern, const std::string &outputFile)
+std::string GstPipelineBuilder::pngtovideo(const std::string &inputPattern, const std::string &outputFile)
 {
      std::ostringstream desc;
      desc << "multifilesrc location=" << inputPattern << " index=0 caps=\"image/png\" "
@@ -22,7 +22,7 @@ std::string PipelineBuilder::pngtovideo(const std::string &inputPattern, const s
 // Bunun farkı, videorate elemanı ile kare hızının 25 fps'ye çıkarılmasıdır.
 // Bu, daha akıcı bir video sağlar.
 // Daha hızlı açılır ve oynatılır.
-std::string PipelineBuilder::pngtovideo25fps(const std::string &inputPattern, const std::string &outputFile)
+std::string GstPipelineBuilder::pngtovideo25fps(const std::string &inputPattern, const std::string &outputFile)
 {
      std::ostringstream desc;
      desc << "multifilesrc location=" << inputPattern << " index=0 caps=\"image/png\" "
@@ -39,7 +39,7 @@ std::string PipelineBuilder::pngtovideo25fps(const std::string &inputPattern, co
 // Örneği: examples/pngtovideo2.cpp
 // PNG dosyalarından saniyede 25 kare hızında video oluşturur. Bizim örneğimizde video toplam 20 saniye olur.
 // Bu yöntem, frame kopyalama yöntemi kullanır.
-std::string PipelineBuilder::pngtovideo2(const std::string &inputPattern, const std::string &outputFile)
+std::string GstPipelineBuilder::pngtovideo2(const std::string &inputPattern, const std::string &outputFile)
 {
      std::ostringstream desc;
      desc << "multifilesrc location=" << inputPattern << " index=0 stop-index=500 caps=\"image/png\" "
@@ -53,10 +53,11 @@ std::string PipelineBuilder::pngtovideo2(const std::string &inputPattern, const 
 // Windows kamera ile video yakalama için GStreamer pipeline tanımı
 // Örneği: examples/windowscam.cpp
 // Windows işletim sisteminde kamera ile video yakalamak için kullanılır.
-std::string PipelineBuilder::windowscam(int width, int height)
+std::string GstPipelineBuilder::windowscam(int width, int height)
 {
      std::ostringstream desc;
      desc << "ksvideosrc ! "
+          << "videoflip method=horizontal-flip !"
           << "video/x-raw,width=" << width
           << ",height=" << height
           << ",framerate=30/1"
@@ -67,7 +68,7 @@ std::string PipelineBuilder::windowscam(int width, int height)
 // Video oynatma için GStreamer pipeline tanımı
 // Örneği: examples/videoplayer.cpp
 // Belirtilen video dosyasını oynatmak için kullanılır.
-std::string PipelineBuilder::videoplayer(const std::string &videoPattern)
+std::string GstPipelineBuilder::videoplayer(const std::string &videoPattern)
 {
      std::ostringstream desc;
      desc << "filesrc location=" << videoPattern << " ! "
@@ -83,7 +84,7 @@ std::string PipelineBuilder::videoplayer(const std::string &videoPattern)
 // İmleç gösterimi de aktiftir.
 // Not: Bu pipeline için GStreamer'ın D3D11 eklentilerinin yüklü olması gerekir.
 // Aksi takdirde çalışmaz.
-std::string PipelineBuilder::windowsscreen()
+std::string GstPipelineBuilder::windowsscreen()
 {
      std::ostringstream desc;
      desc << "d3d11screencapturesrc show-cursor=true monitor-index=0 ! "                // monitor-index=0 birinci monitör için
@@ -102,11 +103,12 @@ std::string PipelineBuilder::windowsscreen()
 // Windows kamera görüntüsünü hem multicast olarak yayınlar hem de unicast olarak bir adrese gönderir.
 // Ayrıca yerel ekranda da görüntüler.
 // Üçlü çıktı sağlar: multicast, unicast ve yerel ekran.
-std::string PipelineBuilder::multiunicastlive()
+std::string GstPipelineBuilder::multiunicastlive()
 {
      std::ostringstream desc;
 
      desc << "ksvideosrc ! " // Windows kamera veya capture kaynağı
+          << "videoflip method=horizontal-flip !"
           << "videoconvert ! "
           << "tee name=t "; // Akışı 3 kola ayırır
 
@@ -126,4 +128,9 @@ std::string PipelineBuilder::multiunicastlive()
      desc << "t. ! queue ! autovideosink"; // ekrana görüntü verir
 
      return desc.str();
+}
+
+std::string GstPipelineBuilder::custompipeline(const std::string &pipeline)
+{
+     return pipeline;
 }

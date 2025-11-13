@@ -1,5 +1,5 @@
 // PDFRenderer1.cpp
-#include "PDFRendererToPNG.h"
+#include "Poppler/PDFRendererToPNG.hpp"
 #include <poppler-document.h>
 #include <poppler-page.h>
 #include <poppler-page-renderer.h>
@@ -17,7 +17,7 @@
 
 using namespace poppler;
 
-bool PDFRenderer1::renderPDFtoPNG(const std::string &inputPath, const std::string &outputDir, int dpi)
+bool PDFRendererToPNG::renderPDFtoPNG(const std::string &inputPath, const std::string &outputDir, int dpi)
 {
     // PDF dosyasını yükle
     document *doc = document::load_from_file(inputPath);

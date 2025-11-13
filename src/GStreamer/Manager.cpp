@@ -1,10 +1,10 @@
-#include "GStreamerManager.h"
+#include "GStreamer/Manager.hpp"
 #include <iostream>
 
 //
 // Constructor: GStreamer’ı başlatır
 //
-GStreamerManager::GStreamerManager()
+GstManager::GstManager()
     : pipeline(nullptr), bus(nullptr)
 {
     gst_init(nullptr, nullptr);
@@ -18,7 +18,7 @@ GStreamerManager::GStreamerManager()
 //
 // Destructor: Temizlik yapar
 //
-GStreamerManager::~GStreamerManager()
+GstManager::~GstManager()
 {
     cleanup();
     std::cout << "GStreamer temizlendi.\n";
@@ -27,7 +27,7 @@ GStreamerManager::~GStreamerManager()
 //
 // Pipeline oluşturma
 //
-bool GStreamerManager::createPipeline(const std::string &pipelineDesc)
+bool GstManager::addPipeline(const std::string &pipelineDesc)
 {
     GError *error = nullptr;
 
@@ -48,26 +48,39 @@ bool GStreamerManager::createPipeline(const std::string &pipelineDesc)
 //
 // Pipeline’ı oynat
 //
-bool GStreamerManager::play()
+bool GstManager::run()
 {
+
     if (!pipeline)
     {
-        std::cerr << "Pipeline yok, önce oluşturulmalı!\n";
+        std::cerr << "Pipeline yok, önce createPipeline çağrılmalı!\n";
         return false;
     }
 
-    GstStateChangeReturn ret = gst_element_set_state(pipeline, GST_STATE_PLAYING);
+    // Pipeline'ı başlat
+    GstStateChangeReturn ret =
+        gst_element_set_state(pipeline, GST_STATE_PLAYING);
+
     if (ret == GST_STATE_CHANGE_FAILURE)
     {
         std::cerr << "Pipeline başlatılamadı!\n";
+        cleanup();
         return false;
     }
 
-    std::cout << "Pipeline oynatılıyor...\n";
+    std::cout << "Pipeline çalışıyor...\n";
+
+    // Ana döngü (wait)
+    wait();
+
+    // Pipeline artık bitti → otomatik temizleme
+    cleanup();
+
+    std::cout << "GStreamer pipeline başarıyla tamamlandı.\n";
     return true;
 }
 
-void GStreamerManager::wait()
+void GstManager::wait()
 {
     if (!pipeline)
         return;
@@ -76,7 +89,6 @@ void GStreamerManager::wait()
 
     // Ana döngü
     gboolean terminate = FALSE;
-    gint64 duration = GST_CLOCK_TIME_NONE;
 
     while (!terminate)
     {
@@ -86,8 +98,7 @@ void GStreamerManager::wait()
             static_cast<GstMessageType>(
                 GST_MESSAGE_ERROR |
                 GST_MESSAGE_EOS |
-                GST_MESSAGE_STATE_CHANGED |
-                GST_MESSAGE_DURATION));
+                GST_MESSAGE_STATE_CHANGED));
 
         if (msg != nullptr)
         {
@@ -109,11 +120,6 @@ void GStreamerManager::wait()
                 terminate = TRUE;
                 break;
 
-            case GST_MESSAGE_DURATION:
-                // Süre değiştiyse yeniden sorgula
-                duration = GST_CLOCK_TIME_NONE;
-                break;
-
             case GST_MESSAGE_STATE_CHANGED:
                 if (GST_MESSAGE_SRC(msg) == GST_OBJECT(pipeline))
                 {
@@ -132,33 +138,13 @@ void GStreamerManager::wait()
 
             gst_message_unref(msg);
         }
-        else
-        {
-            // 🔹 Pipeline halen PLAYING mi?
-            GstState state;
-            gst_element_get_state(pipeline, &state, nullptr, 0);
-
-            if (state != GST_STATE_PLAYING)
-                continue;
-
-            gint64 current = -1;
-            if (!gst_element_query_position(pipeline, GST_FORMAT_TIME, &current))
-                continue;
-
-            if (!GST_CLOCK_TIME_IS_VALID(duration))
-                gst_element_query_duration(pipeline, GST_FORMAT_TIME, &duration);
-
-            g_print("GStreamer Sayaç: %" GST_TIME_FORMAT " / %" GST_TIME_FORMAT "\r",
-                    GST_TIME_ARGS(current), GST_TIME_ARGS(duration));
-            fflush(stdout);
-        }
     }
 }
 
 //
-// 🔹 Temizlik (unref, state null, vs.)
+// Temizlik (unref, state null, vs.)
 //
-void GStreamerManager::cleanup()
+void GstManager::cleanup()
 {
     // Pipeline varsa önce durdur
     if (pipeline)
@@ -176,22 +162,39 @@ void GStreamerManager::cleanup()
 }
 
 //
-// 🔹 Ana fonksiyon
+// Pipeline'ı duraklat
 //
-bool GStreamerManager::runPipeline(const std::string &pipelineDesc)
+void GstManager::pause()
 {
-    if (!createPipeline(pipelineDesc))
-        return false;
-
-    if (!play())
+    if (pipeline)
     {
-        cleanup();
-        return false;
+        gst_element_set_state(pipeline, GST_STATE_PAUSED);
+        std::cout << "Pipeline duraklatıldı.\n";
     }
+}
 
-    wait();
-    cleanup();
+//
+// Pipeline'ı devam ettir
+//
+void GstManager::resume()
+{
+    if (pipeline)
+    {
+        gst_element_set_state(pipeline, GST_STATE_PLAYING);
+        std::cout << "Pipeline devam ediyor.\n";
+    }
+}
 
-    std::cout << "GStreamer pipeline başarıyla tamamlandı.\n";
-    return true;
+//
+// Pipeline'ı yeniden başlat (NULL → PLAYING)
+//
+void GstManager::restart()
+{
+    if (pipeline)
+    {
+        gst_element_set_state(pipeline, GST_STATE_NULL);
+        gst_element_get_state(pipeline, nullptr, nullptr, GST_CLOCK_TIME_NONE);
+        gst_element_set_state(pipeline, GST_STATE_PLAYING);
+        std::cout << "Pipeline yeniden başlatıldı.\n";
+    }
 }

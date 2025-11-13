@@ -1,10 +1,12 @@
-#include "GStreamerManager.h"
-#include "PipelineBuilder.h"
+#include "GStreamer/Manager.hpp"
+#include "GStreamer/PipelineBuilder.hpp"
 #include <iostream>
 
 int main(int argc, char *argv[])
 {
     // GStreamer ile Windows kamera görüntüsünü yakalama
-    GStreamerManager manager;
-    manager.runPipeline(PipelineBuilder::windowscam(640, 480));
+
+    GstManager player;
+    player.addPipeline(GstPipelineBuilder::windowscam(640, 480));
+    player.run();
 }
