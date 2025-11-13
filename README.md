@@ -1,16 +1,18 @@
 # 🧩 GStreamer C++ Library
 
-**GStreamerCppLibrary**, [GStreamer](https://gstreamer.freedesktop.org/) altyapısını C++ projelerinde kolayca kullanmanızı sağlayan bir yardımcı kütüphanedir.  
-Bu kütüphane ile video oluşturma, oynatma, ekran veya kamera yakalama, PDF dosyalarını resme dönüştürme gibi işlemleri sade bir API ile yapabilirsiniz.
+**GStreamerCppLibrary**, C++ projelerinde GStreamer, RTSP Server ve Poppler kütüphanelerini kolayca kullanmanızı sağlayan bir yardımcı kütüphanedir.  
+Bu kütüphane ile video oluşturma, oynatma, ekran veya kamera yakalama, RTSP yayın açma, PDF dosyalarını PNG’ye dönüştürme gibi işlemleri sade bir API ile gerçekleştirebilirsiniz.
 
 ---
 
 ## 🚀 Özellikler
 
-- 🎬 **Kolay GStreamer yönetimi** – `GStreamerManager` sınıfı ile pipeline oluşturma, oynatma ve temizleme işlemleri.
-- 🧱 **Hazır pipeline üreticisi** – `PipelineBuilder` ile PNG → video, kamera, ekran yakalama, multicast/unicast yayın gibi örnekler.
-- 📄 **PDF → PNG dönüştürme** – `PDFRenderer1` sınıfı ile Poppler kullanarak PDF sayfalarını PNG’ye çevirir.
-- ⚙️ **CMake desteği** – `FetchContent` veya `add_subdirectory` ile kolayca entegre edilebilir.
+- 🎬 **Kolay GStreamer yönetimi** – `GstManager` sınıfı ile pipeline oluşturma, oynatma, durdurma ve temizleme işlemleri.
+- 📡 **RTSP Sunucu Yönetimi** – `GstRTSPManager` ile çoklu RTSP yayını ekleme, kaynak değiştirme ve pipeline kontrolü.
+- 🧱 **Hazır pipeline üreticisi** – PNG → video, kamera, ekran yakalama, UDP, RTSP re-stream, input-selector gibi birçok pipeline örneği.
+- 🎮 **GStreamer için GTK kontrol paneli** – `MediaController` ile duraklat / devam et / yeniden başlat.
+- 📄 **PDF → PNG dönüştürme** – `PDFRendererToPNG` ile Poppler kullanarak PDF sayfalarını PNG’ye çevirir.
+- ⚙️ **CMake entegrasyonu** – `FetchContent` veya `add_subdirectory` ile kolayca projeye eklenir.
 - 💻 **Windows (MSYS2/MinGW) ve Linux desteği.**
 
 ---
@@ -19,13 +21,16 @@ Bu kütüphane ile video oluşturma, oynatma, ekran veya kamera yakalama, PDF do
 
 | 🔧 Sınıf Adı | 🎯 Açıklama |
 |--------------|-------------|
-| **GStreamerManager** | 🎬 GStreamer pipeline’larını oluşturur, oynatır ve yönetir. Pipeline durumlarını izler, hata ve sonlandırma işlemlerini otomatik gerçekleştirir. |
-| **PipelineBuilder** | 🧱 PNG → video, kamera, ekran yakalama, multicast/unicast yayın gibi hazır GStreamer pipeline tanımları oluşturur. |
-| **PDFRenderer1** | 📄 Poppler kütüphanesini kullanarak PDF dosyalarını sayfa sayfa PNG resimlerine dönüştürür. |
-| **CMake Entegrasyonu** | ⚙️ Kütüphane, `FetchContent` veya `add_subdirectory` yöntemiyle başka projelere kolayca entegre edilebilir. |
-| **Platform Desteği** | 💻 Windows (MSYS2 / MinGW64) ve Linux sistemlerinde derlenebilir ve kullanılabilir. |
+| **GstManager** | 🎬 GStreamer pipeline’larını oluşturur, oynatır, duraklatır ve yönetir. |
+| **GstPipelineBuilder** | 🧱 PNG → video, kamera, ekran, UDP, RTSP, input-selector gibi hazır pipeline’lar oluşturur. |
+| **GstRTSPManager** | 📡 RTSP sunucusu oluşturur, çoklu RTSP yayını ekler ve pipeline durumlarını yönetir. |
+| **GstRTSPPipelineBuilder** | 🧱 RTSP uyumlu H264/RTP pipeline’lar oluşturur. |
+| **PDFRendererToPNG** | 📄 Poppler kullanarak PDF dosyalarını PNG resimlerine dönüştürür. |
+| **MediaController** | 🎮 GTK arayüzü ile pipeline’ı kontrol edebilen küçük bir GUI bileşeni. |
+| **CMake Entegrasyonu** | ⚙️ `FetchContent` veya `add_subdirectory` yöntemiyle kolay entegrasyon. |
+| **Platform Desteği** | 💻 Windows (MSYS2 / MinGW64) ve Linux üzerinde çalışır. |
 
-
+---
 
 ## 🧰 Gerekli Kütüphaneler
 
@@ -34,6 +39,7 @@ Proje aşağıdaki bağımlılıkları gerektirir:
 - `GStreamer 1.0`
 - `GStreamer RTSP Server`
 - `Poppler (poppler-cpp)`
+- `GTKmm 3.0` (isteğe bağlı GUI için)
 
 ---
 
@@ -55,9 +61,6 @@ which cmake
 which g++
 ```
 
-```
-which mingw32-make
-```
 
 Çıktı aşağıdaki gibi olmalıdır:
 
@@ -69,9 +72,6 @@ which mingw32-make
 /mingw64/bin/g++
 ```
 
-```
-/mingw64/bin/mingw32-make
-```
 
 Eğer bu yollar farklıysa şu paketleri yükleyin:
 
@@ -79,9 +79,6 @@ Eğer bu yollar farklıysa şu paketleri yükleyin:
 pacman -S mingw-w64-x86_64-cmake
 ```
 
-```
-pacman -S mingw-w64-x86_64-make
-```
 
 ### 2️⃣ GStreamer ve Eklentilerini Kurun
 
@@ -117,24 +114,24 @@ mkdir build && cd build
 ```
 
 ```
-mingw32-make
+cmake --build . 
 ```
 
 ```
-mingw32-make install
+cmake --install . 
 ```
 
 ## ✅ Açıklama:
-mingw32-make → kütüphaneyi derler.
-mingw32-make install → derlenen dosyaları /mingw64/lib altına kopyalar.
-Başlık dosyaları /mingw64/include/GStreamerCppLibrary/ dizinine yerleştirilir.
+- cmake --build .  → kütüphaneyi derler.
+- cmake --install .  → derlenen dosyaları /mingw64/lib altına kopyalar.
+- Başlık dosyaları /mingw64/include/GStreamerCppLibrary/ dizinine yerleştirilir.
 
 ### 5️⃣ Kütüphaneyi Kaldırma
 
 Kurulumu kaldırmak için:
 
 ```
-mingw32-make uninstall
+cmake --build . --target uninstall
 ```
 
 Bu komut, kurulum sırasında yüklenen dosyaları sistemden temizler.
@@ -144,14 +141,34 @@ Bu komut, kurulum sırasında yüklenen dosyaları sistemden temizler.
 Projeye FetchContent kullanarak dahil edebilirsiniz:
 
 ```
-include(FetchContent)
 FetchContent_Declare(
-  GStreamerCppLibrary
-  GIT_REPOSITORY https://github.com/r1b1t/gstreamer-cpp-library.git
+    GStreamerCppLibrary
+    GIT_REPOSITORY https://github.com/r1b1t/gstreamer-cpp-library.git
+    GIT_TAG main  # veya belirli bir sürüm etiketi
 )
+
 FetchContent_MakeAvailable(GStreamerCppLibrary)
 
-target_link_libraries(your_target PRIVATE GStreamerCppLibrary)
+# Manuel include / link dizinleri (MSYS2 ortamı için)
+include_directories(
+    C:/msys64/mingw64/include/gstreamer-1.0
+    C:/msys64/mingw64/include/glib-2.0
+    C:/msys64/mingw64/lib/glib-2.0/include
+)
+
+link_directories(C:/msys64/mingw64/lib)
+
+# --- Linkleme ---
+target_link_libraries(QTGSTLibraryFetch
+    PRIVATE
+        Qt::Core
+        gstreamer-1.0
+        gstbase-1.0
+        gstapp-1.0
+        gobject-2.0
+        glib-2.0
+        GStreamerCppLibrary::GStreamerCppLibrary
+)
 ```
 
 
