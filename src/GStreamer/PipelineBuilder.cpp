@@ -53,48 +53,82 @@ std::string GstPipelineBuilder::pngtovideo2(const std::string &inputPattern, con
 // Windows kamera ile video yakalama için GStreamer pipeline tanımı
 // Örneği: examples/windowscam.cpp
 // Windows işletim sisteminde kamera ile video yakalamak için kullanılır.
-std::string GstPipelineBuilder::windowscam(int width, int height)
+std::string GstPipelineBuilder::windowscam(int width, int height, int fps, int deviceIndex, bool mirror, bool addSink)
 {
      std::ostringstream desc;
-     desc << "ksvideosrc ! "
-          << "videoflip method=horizontal-flip !"
-          << "video/x-raw,width=" << width
-          << ",height=" << height
-          << ",framerate=30/1"
-          << " ! videoconvert ! autovideosink";
-     return desc.str(); // sonda boşluk yok
-}
 
-// Video oynatma için GStreamer pipeline tanımı
-// Örneği: examples/videoplayer.cpp
-// Belirtilen video dosyasını oynatmak için kullanılır.
-std::string GstPipelineBuilder::videoplayer(const std::string &videoPattern)
-{
-     std::ostringstream desc;
-     desc << "filesrc location=" << videoPattern << " ! "
-          << "qtdemux ! h264parse ! avdec_h264 ! videoconvert ! autovideosink";
+     // 1. Kaynak
+     desc << "ksvideosrc device-index=" << deviceIndex << " ! ";
+
+     // 2. Aynalama Kontrolü
+     if (mirror)
+     {
+          desc << "videoflip method=horizontal-flip ! ";
+     }
+
+     // 3. Çözünürlük ve Format
+     desc << "video/x-raw,width=" << width << ",height=" << height << ",framerate=" << fps << "/1 ! "
+          << "videoconvert"; // Yayın için buraya kadar ham veri lazım
+
+     // 4. Sink Kontrolü (UDP için false olmalı)
+     if (addSink)
+     {
+          desc << " ! autovideosink sync=false";
+     }
+
      return desc.str();
 }
 
-// Windows Ekran Yakalama için GStreamer pipeline tanımı
-// Örneği: examples/windowsscreen.cpp
-// Windows işletim sisteminde ekran yakalamak için kullanılır.
-// Ekran çözünürlüğü ve kare hızı ayarlanabilir.
-// Bu örnekte 1920x1080 çözünürlük ve 60 fps kullanılmıştır.
-// İmleç gösterimi de aktiftir.
-// Not: Bu pipeline için GStreamer'ın D3D11 eklentilerinin yüklü olması gerekir.
-// Aksi takdirde çalışmaz.
-std::string GstPipelineBuilder::windowsscreen()
+// Test video kaynağı için GStreamer pipeline tanımı
+// Örneği: examples/videotestsrc.cpp
+// Test video kaynağı oluşturur (örneğin, top hareketi)
+std::string GstPipelineBuilder::videotestsrc(int width, int height, int fps, std::string pattern, bool addSink)
 {
      std::ostringstream desc;
-     desc << "d3d11screencapturesrc show-cursor=true monitor-index=0 ! "                // monitor-index=0 birinci monitör için
-                                                                                        // show-cursor=true imleci gösterir
-          << "d3d11convert ! "                                                          // Ekran görüntüsünü D3D11 formatına dönüştürür
-          << "video/x-raw(memory:D3D11Memory),width=1920,height=1080,framerate=60/1 ! " // Çözünürlük ve kare hızı ayarı
-          // memory:D3D11Memory D3D11 bellek formatını kullanır
-          // Bu, performansı artırır
-          // width ve height değerleri ekran çözünürlüğüne göre ayarlanabilir
-          << "d3d11videosink sync=false"; // Ekran görüntüsünü ekranda gösterir
+     desc << "videotestsrc pattern=" << pattern << " ! "
+          << "video/x-raw,width=" << width << ",height=" << height << ",framerate=" << fps << "/1 ! "
+          << "videoconvert";
+
+     if (addSink)
+     {
+          desc << " ! autovideosink sync=false";
+     }
+     return desc.str();
+}
+
+// Windows ekran yakalama için GStreamer pipeline tanımı
+// Örneği: examples/windowsscreen.cpp
+// Windows işletim sisteminde ekran yakalamak için kullanılır.
+std::string GstPipelineBuilder::windowsscreen(int width, int height, int fps, bool addSink)
+{
+     std::ostringstream desc;
+     // Ekran yakalama D3D11 kullandığı için CPU belleğine indirmemiz gerekebilir
+     desc << "d3d11screencapturesrc show-cursor=true ! "
+          << "d3d11convert ! "
+          << "video/x-raw(memory:D3D11Memory),width=" << width << ",height=" << height << ",framerate=" << fps << "/1 ! "
+          << "d3d11download ! videoconvert";
+
+     if (addSink)
+     {
+          desc << " ! autovideosink sync=false";
+     }
+     return desc.str();
+}
+
+// Video dosyası oynatma için GStreamer pipeline tanımı
+// Örneği: examples/videoplayer.cpp
+// Belirtilen video dosyasını oynatır.
+std::string GstPipelineBuilder::videoplayer(const std::string &filePath, bool addSink)
+{
+     std::ostringstream desc;
+     // Dosya yolunu tırnak içine alıyoruz ki boşluklu yollarda hata vermesin
+     desc << "filesrc location=\"" << filePath << "\" ! "
+          << "decodebin ! videoconvert";
+
+     if (addSink)
+     {
+          desc << " ! autovideosink sync=true";
+     }
      return desc.str();
 }
 
@@ -103,7 +137,7 @@ std::string GstPipelineBuilder::windowsscreen()
 // Windows kamera görüntüsünü hem multicast olarak yayınlar hem de unicast olarak bir adrese gönderir.
 // Ayrıca yerel ekranda da görüntüler.
 // Üçlü çıktı sağlar: multicast, unicast ve yerel ekran.
-std::string GstPipelineBuilder::multiunicastlive()
+std::string GstPipelineBuilder::multiunicastlivetee()
 {
      std::ostringstream desc;
 
@@ -130,7 +164,65 @@ std::string GstPipelineBuilder::multiunicastlive()
      return desc.str();
 }
 
+// Kullanıcının kendi pipeline'ını doğrudan kullanabilmesi için
 std::string GstPipelineBuilder::custompipeline(const std::string &pipeline)
 {
      return pipeline;
 }
+
+// ==========================================
+//  YAYINLAYICILAR (UDP)
+// ==========================================
+
+// UDP Tekli Yayın Gönderici için GStreamer pipeline tanımı
+std::string GstPipelineBuilder::udpUnicastSender(const std::string &sourcePipeline, const std::string &ip, int port, int bitrate, int payloadType)
+{
+     std::ostringstream desc;
+     desc << sourcePipeline << " ! "
+          << "x264enc tune=zerolatency bitrate=" << bitrate << " speed-preset=ultrafast ! "
+          // BURASI DEĞİŞTİ:
+          << "rtph264pay pt=" << payloadType << " config-interval=1 ! "
+          << "udpsink host=" << ip << " port=" << port << " sync=false async=false";
+     return desc.str();
+}
+// UDP Çoklu Yayın Gönderici için GStreamer pipeline tanımı
+std::string GstPipelineBuilder::udpMulticastSender(const std::string &sourcePipeline, const std::string &ip, int port, int bitrate, int payloadType)
+{
+     std::ostringstream desc;
+
+     // 1. Kaynağı ekle
+     desc << sourcePipeline << " ! ";
+
+     // 2. Kodlama (Encoder)
+     desc << "x264enc tune=zerolatency bitrate=" << bitrate << " speed-preset=ultrafast ! ";
+
+     // 3. Paketleme (Payloader)
+     // BURASI GÜNCELLENDİ: pt değerini dışarıdan alıyoruz
+     desc << "rtph264pay pt=" << payloadType << " config-interval=1 ! ";
+
+     // 4. Multicast Sink
+     // auto-multicast=true: Multicast gruplarına katılım için şarttır.
+     desc << "udpsink host=" << ip << " port=" << port << " auto-multicast=true sync=false async=false";
+
+     return desc.str();
+}
+// UDP Alıcı pipeline tanımı
+std::string GstPipelineBuilder::udpReceiver(int port, std::string multicastIP, int payloadType)
+{
+     std::ostringstream desc;
+     desc << "udpsrc port=" << port;
+
+     if (!multicastIP.empty())
+     {
+          desc << " address=" << multicastIP << " auto-multicast=true";
+     }
+
+     // BURASI DEĞİŞTİ: payload=(int)... kısmı dinamik oldu
+     desc << " caps=\"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)"
+          << payloadType << "\" ! "
+          << "rtph264depay ! avdec_h264 ! videoconvert ! autovideosink sync=false";
+
+     return desc.str();
+}
+
+

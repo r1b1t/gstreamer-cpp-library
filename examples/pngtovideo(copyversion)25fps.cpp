@@ -74,6 +74,9 @@ int main(int argc, char *argv[])
         GstPipelineBuilder::pngtovideo2(
             outputFramesCopy + "frame_%04d.png",
             outputVideo));
+    manager.play();
+    std::cout << "Press Enter to stop..." << std::endl;
+    std::cin.get();
 
     return 0;
 }

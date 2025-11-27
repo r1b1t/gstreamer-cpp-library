@@ -1,29 +1,43 @@
 #pragma once
 #include <string>
+#include <thread>
+#include <atomic>
+#include <mutex>
 #include <gst/gst.h>
 
 class GstManager
 {
 public:
-    // Yapıcı ve yıkıcı metodlar
+
+    // Yapıcı ve Yıkıcı Fonksiyonlar    
     GstManager();
     ~GstManager();
 
-    // Pipeline Ekleme
+    // Pipeline Oluşturma Fonksiyonu
     bool addPipeline(const std::string &pipelineDesc);
 
-    bool run();
+    // Kontrol Fonksiyonları
+    void play();
     void pause();
     void resume();
     void restart();
+    void close();
+
+    // Erişim Fonksiyonu (pipeline'ı döner)
+    GstElement *getPipeline();
 
 private:
-    // Yardımcı fonksiyonlar
+    // Bus İzleme Döngüsü
+    void busLoop();
 
-    void wait();
-    void cleanup();
+    // Değişkenler
+    GstElement *pipeline = nullptr;
+    GstBus *bus = nullptr;
 
-    // GStreamer objeleri
-    GstElement *pipeline;
-    GstBus *bus;
+    // Thread Yönetimi
+    std::thread busThread;
+    // Çalışma Durumu
+    std::atomic<bool> isRunning{false};
+    // Pipeline Mutex
+    std::mutex pipeMutex;
 };

@@ -16,4 +16,7 @@ int main(int argc, char *argv[])
         GstPipelineBuilder::pngtovideo25fps(
             "pngtovideo_output/output_frames/frame_%d.png",
             "pngtovideo_output/25fps12second.mp4"));
+    manager.play();
+    std::cout << "Press Enter to stop..." << std::endl;
+    std::cin.get();
 }

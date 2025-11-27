@@ -20,16 +20,16 @@ endif()
 # Bağımlılıklar
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
+pkg_check_modules(GSTREAMER_APP REQUIRED gstreamer-app-1.0)
 pkg_check_modules(GSTREAMER_RTSP REQUIRED gstreamer-rtsp-server-1.0)
 pkg_check_modules(POPPLER REQUIRED poppler-cpp)
-pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
 
 # Kaynak dosyalar
 set(LIBRARY_SOURCES
     src/GStreamer/Manager.cpp
-    src/GStreamer/MediaController.cpp
     src/GStreamer/PipelineBuilder.cpp
     src/GStreamerRTSPServer/Manager.cpp
+    src/GStreamerRTSPServer/MediaHub.cpp
     src/GStreamerRTSPServer/PipelineBuilder.cpp
     src/Poppler/PDFRendererToPNG.cpp
 )
@@ -37,9 +37,9 @@ set(LIBRARY_SOURCES
 # Header dosyalar
 set(LIBRARY_HEADERS
     include/GStreamer/Manager.hpp
-    include/GStreamer/MediaController.hpp
     include/GStreamer/PipelineBuilder.hpp
     include/GStreamerRTSPServer/Manager.hpp
+    include/GStreamerRTSPServer/MediaHub.hpp
     include/GStreamerRTSPServer/PipelineBuilder.hpp
     include/Poppler/PDFRendererToPNG.hpp
 )
@@ -54,26 +54,26 @@ target_include_directories(${PROJECT_NAME}
         $<INSTALL_INTERFACE:include>
     PRIVATE
         ${GSTREAMER_INCLUDE_DIRS}
+        ${GSTREAMER_APP_INCLUDE_DIRS}
         ${GSTREAMER_RTSP_INCLUDE_DIRS}
         ${POPPLER_INCLUDE_DIRS}
-        ${GTKMM_INCLUDE_DIRS}
 )
 
 # Linkleme
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
         ${GSTREAMER_LIBRARIES}
+        ${GSTREAMER_APP_LIBRARIES}
         ${GSTREAMER_RTSP_LIBRARIES}
         ${POPPLER_LIBRARIES}
-        ${GTKMM_LIBRARIES}
 )
 
 # Derleme opsiyonları
 target_compile_options(${PROJECT_NAME} PRIVATE
     ${GSTREAMER_CFLAGS_OTHER}
+    ${GSTREAMER_APP_CFLAGS_OTHER}
     ${GSTREAMER_RTSP_CFLAGS_OTHER}
     ${POPPLER_CFLAGS_OTHER}
-    ${GTKMM_CFLAGS_OTHER}
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
