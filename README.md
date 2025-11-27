@@ -10,7 +10,6 @@ Bu kütüphane ile video oluşturma, oynatma, ekran veya kamera yakalama, RTSP y
 - 🎬 **Kolay GStreamer yönetimi** – `GstManager` sınıfı ile pipeline oluşturma, oynatma, durdurma ve temizleme işlemleri.
 - 📡 **RTSP Sunucu Yönetimi** – `GstRTSPManager` ile çoklu RTSP yayını ekleme, kaynak değiştirme ve pipeline kontrolü.
 - 🧱 **Hazır pipeline üreticisi** – PNG → video, kamera, ekran yakalama, UDP, RTSP re-stream, input-selector gibi birçok pipeline örneği.
-- 🎮 **GStreamer için GTK kontrol paneli** – `MediaController` ile duraklat / devam et / yeniden başlat.
 - 📄 **PDF → PNG dönüştürme** – `PDFRendererToPNG` ile Poppler kullanarak PDF sayfalarını PNG’ye çevirir.
 - ⚙️ **CMake entegrasyonu** – `FetchContent` veya `add_subdirectory` ile kolayca projeye eklenir.
 - 💻 **Windows (MSYS2/MinGW) ve Linux desteği.**
@@ -26,7 +25,6 @@ Bu kütüphane ile video oluşturma, oynatma, ekran veya kamera yakalama, RTSP y
 | **GstRTSPManager** | 📡 RTSP sunucusu oluşturur, çoklu RTSP yayını ekler ve pipeline durumlarını yönetir. |
 | **GstRTSPPipelineBuilder** | 🧱 RTSP uyumlu H264/RTP pipeline’lar oluşturur. |
 | **PDFRendererToPNG** | 📄 Poppler kullanarak PDF dosyalarını PNG resimlerine dönüştürür. |
-| **MediaController** | 🎮 GTK arayüzü ile pipeline’ı kontrol edebilen küçük bir GUI bileşeni. |
 | **CMake Entegrasyonu** | ⚙️ `FetchContent` veya `add_subdirectory` yöntemiyle kolay entegrasyon. |
 | **Platform Desteği** | 💻 Windows (MSYS2 / MinGW64) ve Linux üzerinde çalışır. |
 
@@ -39,7 +37,6 @@ Proje aşağıdaki bağımlılıkları gerektirir:
 - `GStreamer 1.0`
 - `GStreamer RTSP Server`
 - `Poppler (poppler-cpp)`
-- `GTKmm 3.0` (isteğe bağlı GUI için)
 
 ---
 
