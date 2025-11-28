@@ -20,9 +20,9 @@ public:
     // Video Dosyası Oynatma
     static std::string videoplayer(const std::string &filePath, bool addSink = true);
     // UDP Tekli Yayın Gönderici
-    static std::string udpUnicastSender(const std::string &sourcePipeline, const std::string &ip, int port, int bitrate = 2048, int payloadType = 96);
+    static std::string udpUnicastSender(const std::string &sourcePipeline, const std::string &ip, int port, int bitrate = 2048, int payloadType = 96, bool sync = true);
     // UDP Çoklu Yayın Gönderici
-    static std::string udpMulticastSender(const std::string &sourcePipeline, const std::string &ip, int port, int bitrate = 4096, int payloadType = 96);
+    static std::string udpMulticastSender(const std::string &sourcePipeline, const std::string &ip, int port, int bitrate = 4096, int payloadType = 96, bool sync = true);
     // UDP Alıcı pipeline oluşturur
     static std::string udpReceiver(int port, std::string multicastIP = "", int payloadType = 96);
     // Çoklu Unicast ve Multicast Yayını için TEE pipeline tanımı

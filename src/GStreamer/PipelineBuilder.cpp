@@ -175,18 +175,18 @@ std::string GstPipelineBuilder::custompipeline(const std::string &pipeline)
 // ==========================================
 
 // UDP Tekli Yayın Gönderici için GStreamer pipeline tanımı
-std::string GstPipelineBuilder::udpUnicastSender(const std::string &sourcePipeline, const std::string &ip, int port, int bitrate, int payloadType)
+std::string GstPipelineBuilder::udpUnicastSender(const std::string &sourcePipeline, const std::string &ip, int port, int bitrate, int payloadType, bool sync)
 {
      std::ostringstream desc;
      desc << sourcePipeline << " ! "
           << "x264enc tune=zerolatency bitrate=" << bitrate << " speed-preset=ultrafast ! "
           // BURASI DEĞİŞTİ:
           << "rtph264pay pt=" << payloadType << " config-interval=1 ! "
-          << "udpsink host=" << ip << " port=" << port << " sync=false async=false";
+          << "udpsink host=" << ip << " port=" << port << " sync=" << (sync ? "true" : "false") << " async=false";
      return desc.str();
 }
 // UDP Çoklu Yayın Gönderici için GStreamer pipeline tanımı
-std::string GstPipelineBuilder::udpMulticastSender(const std::string &sourcePipeline, const std::string &ip, int port, int bitrate, int payloadType)
+std::string GstPipelineBuilder::udpMulticastSender(const std::string &sourcePipeline, const std::string &ip, int port, int bitrate, int payloadType, bool sync)
 {
      std::ostringstream desc;
 
@@ -202,7 +202,7 @@ std::string GstPipelineBuilder::udpMulticastSender(const std::string &sourcePipe
 
      // 4. Multicast Sink
      // auto-multicast=true: Multicast gruplarına katılım için şarttır.
-     desc << "udpsink host=" << ip << " port=" << port << " auto-multicast=true sync=false async=false";
+     desc << "udpsink host=" << ip << " port=" << port << " auto-multicast=true sync=" << (sync ? "true" : "false") << " async=false";
 
      return desc.str();
 }
